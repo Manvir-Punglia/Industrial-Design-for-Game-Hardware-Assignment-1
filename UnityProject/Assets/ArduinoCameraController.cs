@@ -6,20 +6,32 @@ public class ArduinoPlayerController : MonoBehaviour
 {
     public SerialController serialController;   
     public GameObject playerCapsule;           
-    public float rotateSpeed = 1000.0f;
+    public float rotateSpeed = 1000.0f;        
+    public float moveSpeed = 10.0f;            
+    public float jumpForce = 5.0f;             
+    public Rigidbody rb;                       
+    private bool isGrounded = true;            
+
     int horizontalValue = 512;
     int verticalValue = 512;
 
+    void Start()
+    {
+        // Ensure Rigidbody is assigned
+        if (rb == null)
+        {
+            rb = playerCapsule.GetComponent<Rigidbody>();
+        }
+    }
+
     void Update()
     {
-        // Read the serial message from Arduino
         string message = serialController.ReadSerialMessage();
 
         if (message != null)
         {
-            
             string[] data = message.Split(',');
-           
+
             foreach (string div in data)
             {
                 if (div.StartsWith("H:"))
@@ -32,39 +44,57 @@ public class ArduinoPlayerController : MonoBehaviour
                 }
             }
 
-            float normalizedHorizontal = (horizontalValue - 512) / 512f; 
-            float normalizedVertical = (verticalValue - 512) / 512f;    
+            float normalizedHorizontal = (verticalValue - 512) / 512f;
+            float normalizedVertical =  (horizontalValue - 512) / 512f;     
 
-            playerCapsule.transform.Rotate(0, -normalizedHorizontal * rotateSpeed * Time.deltaTime, 0);
-            playerCapsule.transform.Rotate(-normalizedVertical * rotateSpeed * Time.deltaTime, 0, 0);
+            // Rotate the Rigidbody
 
-            //button presses 
+            if (verticalValue > 25 || horizontalValue < 25)
+            {
+                Quaternion targetRotation = rb.rotation * Quaternion.Euler(-normalizedVertical * rotateSpeed * Time.deltaTime, -normalizedHorizontal * rotateSpeed * Time.deltaTime, 0);
+                rb.MoveRotation(targetRotation);
+            }
+            
+
+            // Process button presses
             foreach (string div in data)
             {
-                if (div.Contains(":1"))  // Button pressed true 
+                if (div.Contains(":1"))  // Button pressed true
                 {
+                    Vector3 movement = Vector3.zero;
+
                     if (div.StartsWith("W:"))
-                    {                 
-                        playerCapsule.transform.Translate(Vector3.forward * 100f * Time.deltaTime); 
+                    {
+                        movement += playerCapsule.transform.forward * moveSpeed * Time.deltaTime;
                     }
                     if (div.StartsWith("A:"))
                     {
-                        playerCapsule.transform.Translate(-Vector3.right * 100f * Time.deltaTime);
+                        movement -= playerCapsule.transform.right * moveSpeed * Time.deltaTime;
                     }
                     if (div.StartsWith("S:"))
-                    {                     
-                        playerCapsule.transform.Translate(-Vector3.forward * 100f * Time.deltaTime);
+                    {
+                        movement -= playerCapsule.transform.forward * moveSpeed * Time.deltaTime;
                     }
                     if (div.StartsWith("D:"))
-                    {                       
-                        playerCapsule.transform.Translate(Vector3.right * 100f * Time.deltaTime);
-                    }
-                    if (div.StartsWith("Space:"))
                     {
-                       //add jump
+                        movement += playerCapsule.transform.right * moveSpeed * Time.deltaTime;
+                    }
+
+                    rb.MovePosition(rb.position + movement);
+
+                    if (div.StartsWith("Space:") && isGrounded)
+                    {
+                        rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+                        isGrounded = false;
                     }
                 }
             }
         }
+    }
+
+    void OnCollisionStay(Collision collision)
+    {
+        // Check if grounded
+        isGrounded = true;
     }
 }
