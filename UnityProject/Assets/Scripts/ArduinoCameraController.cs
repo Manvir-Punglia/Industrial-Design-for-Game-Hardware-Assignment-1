@@ -56,7 +56,7 @@ public class ArduinoPlayerController : MonoBehaviour
             float normalizedVertical =  (horizontalValue - 512) / 512f;     
 
             // Rotate the Rigidbody
-
+            /*
             if (verticalValue > 25 || horizontalValue < 25)
             {
                 Quaternion targetRotation = rb.rotation * Quaternion.Euler(-normalizedVertical * rotateSpeed * Time.deltaTime, -normalizedHorizontal * rotateSpeed * Time.deltaTime, 0);
@@ -66,7 +66,7 @@ public class ArduinoPlayerController : MonoBehaviour
                 cameraPitch = Mathf.Clamp(cameraPitch, -90f, 90f); 
                 playerCamera.localRotation = Quaternion.Euler(cameraPitch, 0, 0);
             }
-            
+            */
 
             // Process button presses
             foreach (string div in data)
@@ -75,19 +75,19 @@ public class ArduinoPlayerController : MonoBehaviour
                 {
                     Vector3 movement = Vector3.zero;
 
-                    if (div.StartsWith("W:"))
+                    if (div.StartsWith("Shift:"))
                     {
                         movement += playerCapsule.transform.forward * moveSpeed * Time.deltaTime;
                     }
-                    if (div.StartsWith("A:"))
+                    if (div.StartsWith("Q:"))
                     {
                         movement -= playerCapsule.transform.right * moveSpeed * Time.deltaTime;
                     }
-                    if (div.StartsWith("S:"))
+                    if (div.StartsWith("CTRL:"))
                     {
                         movement -= playerCapsule.transform.forward * moveSpeed * Time.deltaTime;
                     }
-                    if (div.StartsWith("D:"))
+                    if (div.StartsWith("E:"))
                     {
                         movement += playerCapsule.transform.right * moveSpeed * Time.deltaTime;
                     }
