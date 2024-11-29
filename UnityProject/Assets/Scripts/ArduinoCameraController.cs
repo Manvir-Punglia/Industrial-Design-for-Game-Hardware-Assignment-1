@@ -7,20 +7,28 @@ public class ArduinoPlayerController : MonoBehaviour
     public SerialController serialController;   
     public GameObject playerCapsule;           
     public float rotateSpeed = 1000.0f;        
-    public float moveSpeed = 10.0f;            
-    public float jumpForce = 5.0f;             
+    public float moveSpeed = 10.0f;
+    public float jumpForce = 5.0f;
+    public Transform playerCamera;
+    public Gun _gun;
+    
     public Rigidbody rb;                       
     private bool isGrounded = true;            
 
     int horizontalValue = 512;
     int verticalValue = 512;
+    private float cameraPitch = 0f;  
 
     void Start()
     {
-        // Ensure Rigidbody is assigned
+      
         if (rb == null)
         {
             rb = playerCapsule.GetComponent<Rigidbody>();
+        }
+        if (playerCamera == null)
+        {
+            playerCamera = Camera.main.transform; 
         }
     }
 
@@ -53,6 +61,10 @@ public class ArduinoPlayerController : MonoBehaviour
             {
                 Quaternion targetRotation = rb.rotation * Quaternion.Euler(-normalizedVertical * rotateSpeed * Time.deltaTime, -normalizedHorizontal * rotateSpeed * Time.deltaTime, 0);
                 rb.MoveRotation(targetRotation);
+                
+                cameraPitch += -normalizedVertical * rotateSpeed * Time.deltaTime;
+                cameraPitch = Mathf.Clamp(cameraPitch, -90f, 90f); 
+                playerCamera.localRotation = Quaternion.Euler(cameraPitch, 0, 0);
             }
             
 
@@ -87,6 +99,15 @@ public class ArduinoPlayerController : MonoBehaviour
                         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
                         isGrounded = false;
                     }
+                    
+                    if (div.StartsWith("LMB:"))
+                    {
+                        _gun.Shoot();
+                    }
+                    if (div.StartsWith("RMB:"))
+                    {
+                        _gun.Burst();
+                    }
                 }
             }
         }
@@ -94,7 +115,10 @@ public class ArduinoPlayerController : MonoBehaviour
 
     void OnCollisionStay(Collision collision)
     {
-        // Check if grounded
-        isGrounded = true;
+        if (collision.gameObject.tag == "Ground")
+        {
+            isGrounded = true;
+        }
+       
     }
 }
