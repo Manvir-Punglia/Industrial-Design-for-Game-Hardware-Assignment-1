@@ -2518,7 +2518,7 @@ MonoBehaviour:
   serialController: {fileID: 2116018112}
   playerCapsule: {fileID: 1049252615}
   rotateSpeed: 1000
-  moveSpeed: 10
+  moveSpeed: 100
   jumpForce: 5
   playerCamera: {fileID: 0}
   _gun: {fileID: 0}
